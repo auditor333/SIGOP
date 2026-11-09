@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestión de Operaciones - Contraloría Stellantis</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+  <!-- pantalla de inicio de sesión -->
+  <div id="pantallaLogin" class="login-pantalla">
+    <div class="login-caja">
+      <div class="login-logo">
+        <div class="logo-cuadro">
+          <div class="logo-linea"></div>
+          <div class="logo-linea corta"></div>
+        </div>
+      </div>
+      <div class="login-marca">STELLANTIS</div>
+      <h1 class="login-titulo">Sistema de Gestión de Operaciones</h1>
+      <p class="login-sub">Área de Contraloría — Planta VAN</p>
+
+      <label for="inputUsuario">Nombre de usuario</label>
+      <input type="text" id="inputUsuario" placeholder="Ejemplo: Pamela Vega" autocomplete="off">
+
+      <label for="inputTID">TID (4 dígitos)</label>
+      <input type="text" id="inputTID" placeholder="Ejemplo: 1005" maxlength="4" autocomplete="off" inputmode="numeric">
+
+      <p class="login-error" id="loginError"></p>
+
+      <button class="btn-login" onclick="iniciarSesion()">Iniciar sesión</button>
+
+      <p class="login-ayuda">Usuarios de prueba: Pamela Vega (1005), Hector Alvarez (1001), Daniela (1002)</p>
+    </div>
+  </div>
+
+  <!-- aplicación (oculta hasta iniciar sesión) -->
+  <div id="pantallaApp" class="app-oculta">
+
+    <!-- encabezado -->
+    <header class="encabezado">
+      <div class="logo-zona">
+        <div class="logo-cuadro chico">
+          <div class="logo-linea"></div>
+          <div class="logo-linea corta"></div>
+        </div>
+        <div>
+          <div class="marca">STELLANTIS</div>
+          <div class="titulo-app">Sistema de Gestión de Operaciones</div>
+        </div>
+      </div>
+      <div class="usuario-zona">
+        <button class="btn-historial" onclick="abrirHistorial()">&#9776; Historial</button>
+        <button class="btn-panel" id="btnPanel" onclick="irAPanel()">&#9881; Panel de gestión</button>
+        <div class="usuario-datos">
+          <span class="usuario-nombre" id="headerUsuario"></span>
+          <span class="rol-badge" id="headerRol"></span>
+        </div>
+        <button class="btn-salir" onclick="cerrarSesion()">Salir</button>
+      </div>
+    </header>
+
+    <!-- vista principal (mi lugar de trabajo) -->
+    <main class="contenido" id="vistaTrabajo">
+      <h2 class="titulo-seccion" id="tituloBienvenida">Mi lugar de trabajo</h2>
+      <p class="subtitulo" id="subtitulo"></p>
+
+      <!-- tarjetas de resumen -->
+      <section class="resumen">
+        <div class="card-resumen"><div class="num" id="rTotal">0</div><div class="etq">Actividades</div></div>
+        <div class="card-resumen"><div class="num amar" id="rPend">0</div><div class="etq">Pendientes</div></div>
+        <div class="card-resumen"><div class="num azu" id="rProc">0</div><div class="etq">En proceso</div></div>
+        <div class="card-resumen"><div class="num verd" id="rComp">0</div><div class="etq">Completadas</div></div>
+      </section>
+
+      <!-- calendario (siempre visible arriba) -->
+      <h3 class="titulo-bloque">Calendario de la semana</h3>
+      <section id="bloqueCalendario"></section>
+
+      <!-- selector de vista Lista / Pizarra -->
+      <div class="barra-vistas">
+        <h3 class="titulo-bloque" style="margin:0; flex:1;">Detalle de actividades</h3>
+        <button class="btn-vista activo" id="bvLista" onclick="cambiarVista('lista')">Lista</button>
+        <button class="btn-vista" id="bvPizarra" onclick="cambiarVista('pizarra')">Pizarra</button>
+        <button class="btn-nueva" onclick="abrirForm('actividad')">+ Nueva actividad</button>
+      </div>
+      <section id="bloqueDetalle"></section>
+    </main>
+
+    <!-- vista panel de gestión (solo contralor y supervisora) -->
+    <main class="contenido app-oculta" id="vistaPanel">
+      <button class="btn-volver" onclick="volverATrabajo()">&#8592; Volver a mi lugar de trabajo</button>
+      <h2 class="titulo-seccion">Panel de gestión</h2>
+      <p class="subtitulo">Administración de usuarios y reasignación de actividades. Solo disponible para contralor y supervisor.</p>
+
+      <div class="panel-grid">
+        <!-- gestión de usuarios -->
+        <div class="panel-bloque">
+          <div class="panel-bloque-titulo">
+            <span>Usuarios del área</span>
+            <button class="btn-chico" onclick="abrirForm('usuario')">+ Agregar</button>
+          </div>
+          <div id="listaUsuariosPanel"></div>
+        </div>
+
+        <!-- reasignación de tareas -->
+        <div class="panel-bloque">
+          <div class="panel-bloque-titulo"><span>Reasignar actividades</span></div>
+          <div id="listaReasignar"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ventanas emergentes -->
+
+  <!-- manual -->
+  <div class="fondo-ventana" id="vManual">
+    <div class="ventana">
+      <div class="v-titulo" id="tituloManual">Manual</div>
+      <div id="pasosManual"></div>
+      <button class="btn-cerrar" onclick="cerrar('vManual')" style="margin-top:16px;">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- nueva actividad -->
+  <div class="fondo-ventana" id="vFormActividad">
+    <div class="ventana">
+      <div class="v-titulo">Nueva actividad</div>
+      <label>Nombre de la actividad</label>
+      <input type="text" id="actNombre" placeholder="Ejemplo: Revisión de facturas" autocomplete="off">
+      <label>Frecuencia</label>
+      <select id="actFrec"><option>Diaria</option><option>Semanal</option><option>Mensual</option><option>Quincenal</option><option>Esporádica</option></select>
+      <label>Día</label>
+      <select id="actDia"><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option></select>
+      <label>Resumen</label>
+      <input type="text" id="actResumen" placeholder="Breve descripción" autocomplete="off">
+      <p class="login-error" id="errorActividad"></p>
+      <div class="btns-form">
+        <button class="btn-guardar" onclick="guardarActividad()">Guardar</button>
+        <button class="btn-cerrar" onclick="cerrar('vFormActividad')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- nuevo usuario -->
+  <div class="fondo-ventana" id="vFormUsuario">
+    <div class="ventana">
+      <div class="v-titulo">Agregar usuario</div>
+      <label>Nombre de usuario</label>
+      <input type="text" id="usrNombre" placeholder="Ejemplo: Luis Torres" autocomplete="off">
+      <label>TID (4 dígitos)</label>
+      <input type="text" id="usrTID" placeholder="Ejemplo: 1006" maxlength="4" autocomplete="off" inputmode="numeric">
+      <label>Rol</label>
+      <select id="usrRol"><option>Becaria</option><option>Analista</option><option>Especialista</option><option>Supervisora</option><option>Contralor</option></select>
+      <p class="login-error" id="errorUsuario"></p>
+      <div class="btns-form">
+        <button class="btn-guardar" onclick="guardarUsuario()">Guardar</button>
+        <button class="btn-cerrar" onclick="cerrar('vFormUsuario')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- traspaso -->
+  <div class="fondo-ventana" id="vTraspaso">
+    <div class="ventana">
+      <div class="v-titulo">Traspasar actividad</div>
+      <p class="texto-ayuda" id="txtTraspaso"></p>
+      <label>Traspasar a</label>
+      <select id="tDestino"></select>
+      <label>Hasta la fecha</label>
+      <input type="date" id="tFecha">
+      <label>Motivo</label>
+      <select id="tMotivo"><option>Vacaciones</option><option>Incapacidad</option><option>Apoyo por sobrecarga</option><option>Fuera de oficina</option></select>
+      <div class="btns-form">
+        <button class="btn-guardar" onclick="confirmarTraspaso()">Traspasar</button>
+        <button class="btn-cerrar" onclick="cerrar('vTraspaso')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- historial (panel lateral deslizable) -->
+  <div class="historial-fondo" id="historialFondo" onclick="cerrarHistorial()"></div>
+  <aside class="historial-panel" id="historialPanel">
+    <div class="historial-cabecera">
+      <span>Historial de actividades</span>
+      <button class="btn-cerrar-hist" onclick="cerrarHistorial()">&times;</button>
+    </div>
+    <div id="historialContenido"></div>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+</html>
